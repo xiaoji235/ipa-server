@@ -1,22 +1,35 @@
-version: "2"
 
+# ***** 更换所有 <YOUR_DOMAIN> 成你的真实域名 *****
+
+version: "3"
 services:
-  web:https://v我50.eu.org
-    build: .
+  web:
+    image: ineva/ipa-server:latest
     container_name: ipa-server
     restart: unless-stopped
     environment:
-      # server public url
-      - PUBLIC_URL=
-      # option, remote storager config, s3://ENDPOINT:AK:SK:BUCKET, alioss://ENDPOINT:AK:SK:BUCKET, qiniu://[ZONE]:AK:SK:BUCKET
+      # 本服务公网IP
+      - PUBLIC_URL=https://v我50.eu.org
+      # option, 远程存储配置, s3://ENDPOINT:AK:SK:BUCKET, alioss://ENDPOINT:AK:SK:BUCKET, qiniu://[ZONE]:AK:SK:BUCKET
       - REMOTE=
-      # option, remote storager public url, https://cdn.example.com
+      # option, 远程存储访问URL, https://cdn.example.com
       - REMOTE_URL=
-      # option, metadata storage path, use random secret path to keep your metadata safer in case of remote storage
+      # option, 元数据存储路径, 使用一个随机路径来保护元数据，因为在使用远程存储的时候，没有更好的方法防止外部直接访问元数据文件
       - META_PATH=appList.json
-      # delete app enabled, true/false
-      - DELETE_ENABLED=false
-    ports:
-      - "9008:8080"
+      # 是否开启删除APP功能, true/false
+      - DELETE_ENABLED="false"
     volumes:
       - "/docker/data/ipa-server:/app/upload"
+  caddy:
+    image: ineva/caddy:2.4.1
+    restart: unless-stopped
+    ports:
+      - 80:80
+      - 443:443
+    entrypoint: |
+      sh -c 'echo "$$CADDY_CONFIG" > /srv/Caddyfile && /usr/bin/caddy run --config /srv/Caddyfile'
+    environment:
+      CADDY_CONFIG: |
+        v我50.eu.org {
+          reverse_proxy web:8080
+        }
