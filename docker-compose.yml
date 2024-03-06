@@ -1,7 +1,7 @@
 version: "2"
 
 services:
-  web:
+  web:https://v我50.eu.org
     build: .
     container_name: ipa-server
     restart: unless-stopped
